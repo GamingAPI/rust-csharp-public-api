@@ -19,14 +19,26 @@ commit_message=""
 
 document_last_version=$(cat ./configs.json | jq -r '.document_last_version')
 template_last_version=$(cat ./configs.json | jq -r '.template_last_version')
-library_last_version=$(cat ./package.json | jq -r '.version')
 
 [ -d "./definitions" ] && rm -rf ./definitions
+[ -d "./tooling" ] && rm -rf ./tooling
 
-template_current_version=$(curl -sL https://api.github.com/repos/asyncapi/ts-nats-template/releases/latest | jq -r '.tag_name' | sed 's/v//')
+template_current_version=$(curl -sL https://api.github.com/repos/asyncapi/dotnet-nats-template/releases/latest | jq -r '.tag_name' | sed 's/v//')
 
 git clone https://github.com/GamingAPI/definitions.git definitions
-document_current_version=$(cat ./definitions/bundled/rust_public.asyncapi.json | jq -r '.info.version' | sed 's/v//')
+document_current_version=$(cat ./definitions/bundled/rust.asyncapi.json | jq -r '.info.version' | sed 's/v//')
+
+if [ -f "./AsyncapiNatsClient/AsyncapiNatsClient.csproj" ]; then
+  if ! command -v xml-to-json &> /dev/null
+  then
+    git clone https://github.com/tyleradams/json-toolkit.git tooling
+    cd ./tooling && make json-diff json-empty-array python-dependencies && sudo make install
+    cd ..
+  fi
+  library_last_version=$(cat ./AsyncapiNatsClient/AsyncapiNatsClient.csproj | xml-to-json | jq -r '.Project.PropertyGroup.Version')
+else
+  library_last_version="0.0.0"
+fi
 
 semver_template_last_version=( ${template_last_version//./ } )
 major_template_last_version=${semver_template_last_version[0]}
@@ -70,7 +82,7 @@ fi
 
 if $major_version_change == 'true' || $minor_version_change == 'true' || $patch_version_change == 'true'; then
   # Remove previous files to ensure clean slate
-  find . -not \( -name configs.json -or -name .gitignore -or -name LICENSE -or -name custom_package.json -or -name generate.sh -or -iwholename *.github* -or -iwholename *./definitions* -or -iwholename *.git* -or -name . \) -exec rm -rf {} +
+  find . -not \( -name configs.json -or -name .gitignore -or -name LICENSE -or -name generate.sh -or -iwholename *.github* -or -iwholename *./definitions* -or -iwholename *.git* -or -name . \) -exec rm -rf {} +
 
   # Generating client from the AsyncAPI document
   if ! command -v ag &> /dev/null
@@ -78,18 +90,12 @@ if $major_version_change == 'true' || $minor_version_change == 'true' || $patch_
     npm install -g @asyncapi/generator
   fi
 
-  ag --force-write --output ./ ./definitions/bundled/rust_public.asyncapi.json @asyncapi/ts-nats-template
+  ag --force-write --output ./ ./definitions/bundled/rust.asyncapi.json @asyncapi/dotnet-nats-template -p version="$library_last_version"
 
   # Write new config file to ensure we keep the new state for next time
   contents="$(jq ".template_last_version = \"$template_current_version\" | .document_last_version = \"$document_current_version\"" configs.json)" && echo "${contents}" > configs.json
-  # Write old version to package.json file as it was cleared by the generator
-  contents="$(jq ".version = \"$library_last_version\"" package.json)" && echo "${contents}" > package.json
-  # Merge custom package file with template generated
-  jq -s '.[0] * .[1]' ./package.json ./custom_package.json > ./package_tmp.json
-  rm ./package.json
-  mv ./package_tmp.json ./package.json
   rm -rf ./definitions
-  npm i
+
 fi
 mkdir -p ./.github/variables
 echo "
@@ -98,3 +104,4 @@ minor_version_change="$minor_version_change"
 patch_version_change="$patch_version_change"
 " > ./.github/variables/generator.env
 rm -rf ./definitions
+rm -rf ./tooling
