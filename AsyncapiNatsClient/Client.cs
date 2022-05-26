@@ -120,5 +120,22 @@ server_id);
     throw new ClientNotConnected();
   }
 }
+public void PublishToV0RustServersServerIdEventsPlayerSteamIdChatted(
+  ChatMessage requestMessage,
+String server_id,String steam_id
+)
+  {
+  if (IsConnected())
+  {
+    V0RustServersServerIdEventsPlayerSteamIdChatted.Publish(logger,
+connection,
+requestMessage,
+server_id,steam_id);
+  }
+  else
+  {
+    throw new ClientNotConnected();
+  }
+}
   }
 }
