@@ -9,7 +9,13 @@ using NATS.Client;
 namespace Asyncapi.Nats.Client
 {
 
-  
+  public delegate void V0RustServersServerIdEventsStartedOnRequest(
+      String server_id
+    );
+public delegate void V0RustServersServerIdEventsPlayerSteamIdChattedOnRequest(
+      ChatMessage request,
+String server_id,String steam_id
+    );
 
   public class NatsClient
   {
@@ -105,15 +111,32 @@ namespace Asyncapi.Nats.Client
     {
         this.Logger = logger;
     }
-    public void PublishToV0RustServersServerIdEventsStarted(
-  String server_id
-)
-  {
+    public IAsyncSubscription SubscribeToV0RustServersServerIdEventsStarted(
+  V0RustServersServerIdEventsStartedOnRequest onRequest,
+String server_id
+){
   if (IsConnected())
   {
-    V0RustServersServerIdEventsStarted.Publish(logger,
+    return V0RustServersServerIdEventsStarted.Subscribe(logger,
 connection,
+onRequest,
 server_id);
+  }
+  else
+  {
+    throw new ClientNotConnected();
+  }
+}
+public IAsyncSubscription SubscribeToV0RustServersServerIdEventsPlayerSteamIdChatted(
+  V0RustServersServerIdEventsPlayerSteamIdChattedOnRequest onRequest,
+String server_id,String steam_id
+){
+  if (IsConnected())
+  {
+    return V0RustServersServerIdEventsPlayerSteamIdChatted.Subscribe(logger,
+connection,
+onRequest,
+server_id,steam_id);
   }
   else
   {
