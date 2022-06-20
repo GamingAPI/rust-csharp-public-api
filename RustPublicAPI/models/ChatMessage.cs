@@ -130,7 +130,7 @@ namespace Asyncapi.Nats.Client.Models
         }
         if (propertyName == "is_admin")
         {
-          var value = JsonSerializer.Deserialize<bool?>(ref reader, options);
+          var value = JsonSerializer.Deserialize<bool>(ref reader, options);
           instance.IsAdmin = value;
           continue;
         }
