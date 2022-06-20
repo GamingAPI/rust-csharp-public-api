@@ -6,6 +6,7 @@ set -e
 
 # Initial setup of variables
 libary_name="RustPublicAPI"
+repository_url="https://github.com/GamingAPI/rust-csharp-public-api.git"
 library_last_version="0.0.0"
 template_last_version="0.0.0"
 template_current_version="0.0.0"
@@ -101,9 +102,7 @@ if $major_version_change == 'true' || $minor_version_change == 'true' || $patch_
     npm install -g @asyncapi/generator
   fi
   # Generating new code from the AsyncAPI document
-  ag --force-write --output ./ ${url_to_asyncapi_document} @asyncapi/dotnet-nats-template -p version="$library_last_version"
-  ag --force-write --output ./ ${url_to_asyncapi_document} https://github.com/jonaslagoni/dotnet-nats-template@master -p version="$library_last_version" -p targetFramework="netstandard2.0;netstandard2.1;net461" -p repositoryUrl="https://github.
-com/GamingAPI/rust-csharp-game-api.git" -p projectName="${libary_name}"
+  ag --force-write --output ./ ${url_to_asyncapi_document} https://github.com/jonaslagoni/dotnet-nats-template@master -p version="$library_last_version" -p targetFramework="netstandard2.0;netstandard2.1;net461" -p repositoryUrl="${repository_url}" -p projectName="${libary_name}"
 
   # Write new config file to ensure we keep the new state for next time
   contents="$(jq ".template_last_version = \"$template_current_version\" | .document_last_version = \"$document_current_version\"" configs.json)" && echo "${contents}" > configs.json
