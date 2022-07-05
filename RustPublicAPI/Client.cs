@@ -10,7 +10,12 @@ namespace Asyncapi.Nats.Client
 {
 
   public delegate void V0RustServersServerIdEventsStartedOnRequest(
-      String server_id
+      ServerStarted request,
+String server_id
+    );
+public delegate void V0RustServersServerIdEventsStoppedOnRequest(
+      ServerStopped request,
+String server_id
     );
 public delegate void V0RustServersServerIdEventsPlayerSteamIdChattedOnRequest(
       ChatMessage request,
@@ -118,6 +123,22 @@ String server_id
   if (IsConnected())
   {
     return V0RustServersServerIdEventsStarted.Subscribe(logger,
+connection,
+onRequest,
+server_id);
+  }
+  else
+  {
+    throw new ClientNotConnected();
+  }
+}
+public IAsyncSubscription SubscribeToV0RustServersServerIdEventsStopped(
+  V0RustServersServerIdEventsStoppedOnRequest onRequest,
+String server_id
+){
+  if (IsConnected())
+  {
+    return V0RustServersServerIdEventsStopped.Subscribe(logger,
 connection,
 onRequest,
 server_id);

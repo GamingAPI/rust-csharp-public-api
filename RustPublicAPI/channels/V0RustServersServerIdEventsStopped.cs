@@ -6,28 +6,28 @@ using Asyncapi.Nats.Client.Models;
 
 namespace Asyncapi.Nats.Client.Channels
 {
-  class V0RustServersServerIdEventsStarted
+  class V0RustServersServerIdEventsStopped
   {
 
-  internal static ServerStarted JsonDeserializerSupport(LoggingInterface logger, byte[] buffer)
+  internal static ServerStopped JsonDeserializerSupport(LoggingInterface logger, byte[] buffer)
 {
   var srt = Encoding.UTF8.GetString(buffer);
   logger.Debug("Deserializing message " + srt);
-  return JsonSerializer.Deserialize<ServerStarted>(srt);
+  return JsonSerializer.Deserialize<ServerStopped>(srt);
 }
   public static IAsyncSubscription Subscribe(
     LoggingInterface logger,
 IEncodedConnection connection,
-V0RustServersServerIdEventsStartedOnRequest onRequest,
+V0RustServersServerIdEventsStoppedOnRequest onRequest,
 String server_id
   )
   {
     EventHandler<EncodedMessageEventArgs> handler = (sender, args) =>
     {
-      logger.Debug("Got message for channel subscription: " + $"v0.rust.servers.{server_id}.events.started");
+      logger.Debug("Got message for channel subscription: " + $"v0.rust.servers.{server_id}.events.stopped");
       var deserializedMessage = JsonDeserializerSupport(logger, (byte[])args.ReceivedObject);
 
-      var unmodifiedChannel = "v0.rust.servers.{server_id}.events.started";
+      var unmodifiedChannel = "v0.rust.servers.{server_id}.events.stopped";
   var channel = args.Subject;
   var serverIdSplit = unmodifiedChannel.Split(new string[] { "{server_id}" }, StringSplitOptions.None);
   String[] splits = {
@@ -41,8 +41,8 @@ var serverIdParam = $"{channel.Substring(0, serverIdEnd)}";
       onRequest(deserializedMessage,
 serverIdParam);
     };
-    logger.Debug("Subscribing to: " + $"v0.rust.servers.{server_id}.events.started");
-    return connection.SubscribeAsync($"v0.rust.servers.{server_id}.events.started",handler);
+    logger.Debug("Subscribing to: " + $"v0.rust.servers.{server_id}.events.stopped");
+    return connection.SubscribeAsync($"v0.rust.servers.{server_id}.events.stopped",handler);
   }
 
   }
